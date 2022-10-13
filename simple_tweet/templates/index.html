@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <link href="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.js"></script>
+  </head>
+  <style>
+    #app {
+      background-color: rgb(56 56 62);
+    }
+    .v-application .title {
+      line-height: 4rem !important;
+      color: #ffef7f;
+      text-align: center;
+      margin-top: 80px;
+      font-size: 2.25rem !important;
+      font-family: cursive !important
+    }
+    .card {
+      border-radius: 20px !important;
+      background-color: #646161 !important;
+    }
+    .btn {
+      color: #cfbdbd !important;
+      width: 100%;
+      background: #3e2f2f !important;
+    }
+    .table {
+      margin-top: 40px;
+    }
+  </style>
+  <body>
+    {% csrf_token %}
+    <div id="app">
+      <v-app>
+        <v-layout justify-center>
+          <v-flex sm12 md10 lg8>
+            <p v-html="title" class="title"></p>
+              <v-card class="card sending_box">
+                <v-card-text>
+                  <v-flex justify-space-between>
+                    <v-text-field 
+                      v-model="newUser"
+                      label="User"
+                    ></v-text-field>
+                    <v-text-field 
+                      v-model="newText"
+                      label="Message"
+                    ></v-text-field>
+                    <v-btn @click="submit" class="btn">Submit</v-btn>
+                  </v-flex>
+                </v-card-text>
+              </v-card>
+              <v-card class="card table">
+                <v-data-table
+                  :headers="headers"
+                  :items="text"
+                  :expand="true"
+                >
+                </v-data-table>
+              </v-card>
+          </v-flex>
+        </v-layout>
+      </v-app>
+    </div>
+    <script>
+      new Vue({
+        el: "#app",
+        vuetify: new Vuetify(),
+        data() {
+          return {
+            title: "Simple Tweet Page",
+            text: [],
+            newUser: "",
+            newText: "",
+            headers: [
+              {
+                text: "User",
+                value: "user_name"
+              },
+              {
+                text: "Message",
+                value: "text"
+              },
+              {
+                text: "When",
+                value: "when"
+              }
+            ]
+          }
+        },
+        watch: {
+          text: function() {
+            this.text.forEach(message => {
+              message.when = new Date(message.created_at).toLocaleString();
+            });
+          }
+        },
+        created: function() {
+          this.fetchAll();
+        },
+        methods: {
+          fetchAll() {
+            console.log("fetch all");
+            axios.get('/api/texts')
+              .then(({data}) => {
+                this.text = data.texts;
+              })
+              .catch(console.log)
+          },
+          submit() {
+            axios.post('/api/texts/', {
+              user_name: this.newUser,
+              text: this.newText
+            }).then(({data}) => {
+              this.text.push(data.newText);
+            }).catch(console.log)
+          }
+        }
+      });
+      Vue.use(Vuetify, {
+        
+      });
+    </script>
+    
+  </body>
+</html>
+
+
